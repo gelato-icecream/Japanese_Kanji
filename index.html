@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>漢字 Yomi — Learn Kanji Readings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" data-nav="browse">
+      <span class="brand-kanji">読</span>
+      <span class="brand-text">Kanji <b>Yomi</b><small>learn when to read what</small></span>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-nav="browse">📚 Kanji</button>
+      <button class="tab" data-nav="rules">🧭 Reading Rules</button>
+      <button class="tab" data-nav="quiz">🎯 Quiz</button>
+    </nav>
+    <div class="toggles">
+      <label class="switch" title="Show furigana (reading above kanji)">
+        <input type="checkbox" id="toggleFurigana" checked /> <span>ふりがな</span>
+      </label>
+      <label class="switch" title="Show English translations">
+        <input type="checkbox" id="toggleEnglish" checked /> <span>English</span>
+      </label>
+      <button class="icon-btn" id="openSettings" title="Settings">⚙️</button>
+    </div>
+  </header>
+
+  <!-- ═════════ SETTINGS ═════════ -->
+  <div id="settings" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-head">
+        <h2 id="settingsTitle">⚙️ Settings</h2>
+        <button class="icon-btn" id="closeSettings" title="Close (Esc)">✕</button>
+      </div>
+
+      <div class="setting">
+        <div>
+          <div class="setting-name">🌙 Dark mode</div>
+          <div class="setting-desc">Easier on the eyes at night.</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggleDark" /><span class="slider"></span></label>
+      </div>
+
+      <div class="setting">
+        <div>
+          <div class="setting-name">🔊 Pronounce answer in quiz</div>
+          <div class="setting-desc">Automatically speak the Japanese reading after answering a quiz question.</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="toggleAutoSpeak" /><span class="slider"></span></label>
+      </div>
+
+      <div class="setting column">
+        <div>
+          <div class="setting-name">👀 Revealing hidden text</div>
+          <div class="setting-desc">How hidden furigana (readings, on/kun) and blurred English are shown in the quiz, example words and sentences.</div>
+        </div>
+        <div class="seg" id="revealMode">
+          <label><input type="radio" name="reveal" value="hover" /><span>🖱️ Hover</span></label>
+          <label><input type="radio" name="reveal" value="click" /><span>👆 Click</span></label>
+          <label><input type="radio" name="reveal" value="never" /><span>🚫 Never</span></label>
+        </div>
+      </div>
+
+      <div class="setting column">
+        <div>
+          <div class="setting-name">📱 Device mode</div>
+          <div class="setting-desc">Automatically adapt to your device, or force mobile or desktop view.</div>
+        </div>
+        <div class="seg" id="deviceMode">
+          <label><input type="radio" name="device" value="auto" /><span>🤖 Auto</span></label>
+          <label><input type="radio" name="device" value="mobile" /><span>📱 Mobile</span></label>
+          <label><input type="radio" name="device" value="desktop" /><span>💻 Desktop</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="app">
+    <!-- ═════════ BROWSE ═════════ -->
+    <section id="view-browse" class="view active">
+      <div class="hero">
+        <h1>Master kanji <span class="accent">pronunciation</span></h1>
+        <p>Every kanji has <b>on'yomi</b> (音読み, Chinese-based) and often <b>kun'yomi</b> (訓読み, native Japanese) readings. Click a kanji to see its readings, <i>when</i> to use each one, example words and sentences.</p>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div id="progressFill"></div></div>
+          <span id="progressText"></span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <input type="search" id="search" placeholder="Search kanji, meaning or reading… (e.g. 日, water, にち)" />
+        <div id="catFilters" class="chips"></div>
+      </div>
+
+      <div id="kanjiGrid" class="grid"></div>
+    </section>
+
+    <!-- ═════════ DETAIL ═════════ -->
+    <section id="view-detail" class="view">
+      <div class="detail-nav">
+        <button class="btn ghost" data-nav="browse">← All kanji</button>
+        <div>
+          <button class="btn ghost" id="prevKanji" title="Previous (←)">‹ Prev</button>
+          <button class="btn ghost" id="nextKanji" title="Next (→)">Next ›</button>
+        </div>
+      </div>
+      <div id="detail"></div>
+    </section>
+
+    <!-- ═════════ RULES ═════════ -->
+    <section id="view-rules" class="view">
+      <div class="rules">
+        <h1>How to know which reading to use</h1>
+        <p class="lead">There's no rule that works 100% of the time, but these patterns cover the vast majority of words you'll meet. Learn them, then learn the exceptions as vocabulary.</p>
+
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-q">Is the kanji followed by hiragana that's part of the word (<b>okurigana</b>)?</div>
+            <div class="flow-a">e.g. 食<u>べる</u>, 大<u>きい</u>, 見<u>る</u></div>
+            <div class="flow-r kun">→ Almost always <b>kun'yomi</b></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-q">Is the kanji standing <b>alone</b> as a word?</div>
+            <div class="flow-a">e.g. 山, 水, 人, 車</div>
+            <div class="flow-r kun">→ Usually <b>kun'yomi</b> <small>(exceptions: 本 ほん, 金 きん, 気 き)</small></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-q">Is it part of a compound of <b>two or more kanji</b> with no hiragana?</div>
+            <div class="flow-a">e.g. 学生, 電車, 来週</div>
+            <div class="flow-r on">→ Usually <b>on'yomi</b> <small>(exceptions: native compounds like 花見, 名前)</small></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-q">Is it a person's name or place name?</div>
+            <div class="flow-a">e.g. 山本, 品川</div>
+            <div class="flow-r special">→ Anything goes — names often use <b>kun'yomi</b>, just memorise them</div>
+          </div>
+        </div>
+
+        <div class="rule-cards">
+          <article class="rule-card">
+            <h2><span class="badge on">音</span> On'yomi 音読み</h2>
+            <p>Readings borrowed from Chinese when kanji came to Japan. Dictionaries write them in <b>katakana</b>.</p>
+            <ul>
+              <li>Mostly in <b>compounds</b> (熟語): <span class="jp">学生 がくせい</span>, <span class="jp">電話 でんわ</span></li>
+              <li>Usually short: 1–2 morae like ニチ, ガク, デン</li>
+              <li>Numbers with counters: <span class="jp">三時 さんじ</span>, <span class="jp">五人 ごにん</span></li>
+              <li>A kanji may have several on'yomi from different eras: 生 → セイ / ショウ</li>
+            </ul>
+          </article>
+
+          <article class="rule-card">
+            <h2><span class="badge kun">訓</span> Kun'yomi 訓読み</h2>
+            <p>The native Japanese word that was matched to the kanji's meaning. Written in <b>hiragana</b>.</p>
+            <ul>
+              <li>Kanji used <b>alone</b>: <span class="jp">山 やま</span>, <span class="jp">水 みず</span></li>
+              <li>Verbs &amp; adjectives with <b>okurigana</b>: <span class="jp">食べる たべる</span>, <span class="jp">大きい おおきい</span></li>
+              <li>The okurigana tells you <i>which</i> kun'yomi: 上<u>げる</u> あげる vs 上<u>る</u> のぼる</li>
+              <li>Native counting: <span class="jp">一つ ひとつ</span>, <span class="jp">二つ ふたつ</span></li>
+            </ul>
+          </article>
+
+          <article class="rule-card">
+            <h2><span class="badge mixed">混</span> Mixed readings</h2>
+            <p>Some compounds mix the two types.</p>
+            <ul>
+              <li><b>重箱読み (jūbako)</b> — on + kun: <span class="jp">本屋 ほん・や</span>, <span class="jp">毎朝 まい・あさ</span></li>
+              <li><b>湯桶読み (yutō)</b> — kun + on: <span class="jp">見本 み・ほん</span>, <span class="jp">場所 ば・しょ</span></li>
+            </ul>
+          </article>
+
+          <article class="rule-card">
+            <h2><span class="badge special">特</span> Special readings 熟字訓</h2>
+            <p>The whole word has a reading that can't be split per kanji. Just learn them as vocabulary.</p>
+            <ul>
+              <li><span class="jp">今日 きょう</span> (today), <span class="jp">明日 あした</span> (tomorrow)</li>
+              <li><span class="jp">大人 おとな</span> (adult), <span class="jp">一人 ひとり</span>, <span class="jp">二人 ふたり</span></li>
+              <li><span class="jp">時計 とけい</span> (clock), <span class="jp">お土産 おみやげ</span> (souvenir)</li>
+              <li><span class="jp">上手 じょうず</span>, <span class="jp">下手 へた</span></li>
+            </ul>
+          </article>
+
+          <article class="rule-card wide">
+            <h2>🔊 Sound changes</h2>
+            <p>Readings change slightly when kanji join together. Once you know these, many "weird" readings make sense.</p>
+            <div class="sound-table">
+              <div>
+                <h3>Rendaku 連濁</h3>
+                <p>The first sound of the 2nd part becomes voiced (か→が, ひ→び, さ→ざ…)</p>
+                <p class="jp">花 はな + 火 ひ → 花火 はな<b>び</b><br>小 お + 川 かわ → 小川 お<b>が</b>わ<br>日曜 + 日 ひ → 日曜日 にちよう<b>び</b></p>
+              </div>
+              <div>
+                <h3>Gemination 促音便</h3>
+                <p>A final く/ち/つ shrinks into a small っ before k, s, t, p sounds</p>
+                <p class="jp">学 がく + 校 こう → <b>がっ</b>こう<br>一 いち + 緒 しょ → <b>いっ</b>しょ<br>一 いち + 本 ほん → <b>いっぽ</b>ん</p>
+              </div>
+              <div>
+                <h3>Counters h → p/b</h3>
+                <p>は/ひ/ふ/へ/ほ counters change after 1, 3, 6, 8, 10 and 何</p>
+                <p class="jp">一本 いっ<b>ぽ</b>ん<br>二本 に<b>ほ</b>ん<br>三本 さん<b>ぼ</b>ん</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="rule-card wide">
+            <h2>📅 Counting days — a classic trap</h2>
+            <p>Days of the month 2–10 use <b>native numbers + か</b>; from 11 on (except 14, 20, 24) they use on'yomi + にち.</p>
+            <div class="days">
+              <span><b>1</b> 一日<i>ついたち</i></span><span><b>2</b> 二日<i>ふつか</i></span><span><b>3</b> 三日<i>みっか</i></span>
+              <span><b>4</b> 四日<i>よっか</i></span><span><b>5</b> 五日<i>いつか</i></span><span><b>6</b> 六日<i>むいか</i></span>
+              <span><b>7</b> 七日<i>なのか</i></span><span><b>8</b> 八日<i>ようか</i></span><span><b>9</b> 九日<i>ここのか</i></span>
+              <span><b>10</b> 十日<i>とおか</i></span><span><b>11</b> 十一日<i>じゅういちにち</i></span><span><b>14</b> 十四日<i>じゅうよっか</i></span>
+              <span><b>20</b> 二十日<i>はつか</i></span><span><b>24</b> 二十四日<i>にじゅうよっか</i></span>
+            </div>
+          </article>
+        </div>
+
+        <div class="cta">
+          <button class="btn primary" data-nav="quiz">Test yourself in the quiz →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════ QUIZ ═════════ -->
+    <section id="view-quiz" class="view">
+      <div class="quiz-wrap">
+        <div class="quiz-head">
+          <h1>Reading Quiz</h1>
+          <div class="quiz-modes chips">
+            <button class="chip active" data-mode="reading">How is it read?</button>
+            <button class="chip" data-mode="type">On or Kun?</button>
+            <button class="chip" data-mode="sentence">Sentence reading</button>
+          </div>
+          <div class="quiz-score">
+            <span>✅ <b id="scoreRight">0</b></span>
+            <span>❌ <b id="scoreWrong">0</b></span>
+            <span>🔥 streak <b id="scoreStreak">0</b></span>
+            <span>best <b id="scoreBest">0</b></span>
+          </div>
+        </div>
+        <div id="quizCard" class="quiz-card"></div>
+        <p class="hint">Keyboard: press <kbd>1</kbd>–<kbd>4</kbd> to answer, <kbd>Enter</kbd> for next question. Stuck? Hover or click the word to peek at its reading (see ⚙️ Settings).</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    Click 🔊 to hear pronunciation (uses your browser's Japanese voice). Progress is saved in your browser.
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="data-more.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
